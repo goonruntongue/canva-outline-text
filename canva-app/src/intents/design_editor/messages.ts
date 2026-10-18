@@ -4,7 +4,7 @@ import { defineMessages } from "react-intl";
 
 export const messages = defineMessages({
   sampleText: {
-    defaultMessage: "Outline\nText",
+    defaultMessage: "Outline Text",
     description:
       "Sample text shown in the text field and preview when the app first opens",
   },

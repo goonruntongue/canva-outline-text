@@ -29,6 +29,7 @@ import * as styles from "styles/components.css";
 import type { FontDef } from "./fonts";
 import {
   customFontLabel,
+  DEFAULT_FONT,
   ensureFont,
   FONTS,
   isCustomFont,
@@ -51,7 +52,6 @@ const PRESET_LABELS = {
   mono: messages.presetMono,
 } as const;
 
-const DEFAULT_FONT = FONTS[0]!;
 
 const INITIAL: OutlineSettings = {
   text: "",
@@ -63,7 +63,7 @@ const INITIAL: OutlineSettings = {
   align: "center",
   fill: "#ffffff",
   join: "round",
-  layers: PRESETS.pop!.layers.map((l) => ({ ...l })),
+  layers: PRESETS.pop.layers.map((l) => ({ ...l })),
 };
 
 // 再編集用に App Element に保存するデータ（上限 5KB）
@@ -192,7 +192,7 @@ export const App = () => {
     isCustomFont(s.fontFamily) && !isCustomFontLoaded(s.fontFamily);
   if (missingCustom) {
     fontOptions.push({
-      label: t(messages.fontNotLoadedSuffix, {
+      fontName: t(messages.fontNotLoadedSuffix, {
         name: customFontLabel(s.fontFamily),
       }),
       family: s.fontFamily,
@@ -252,7 +252,6 @@ export const App = () => {
       cancelled = true;
     };
     // customFonts: フォント読み込み後に描き直すため
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s, currentFont.family, currentFont.weight, customFonts]);
 
   const loadSelection = async () => {
@@ -405,7 +404,7 @@ export const App = () => {
               stretch
               options={fontOptions.map((f) => ({
                 value: `${f.family}|${f.weight}`,
-                label: f.label,
+                label: f.fontName,
               }))}
               onChange={(v: string) => {
                 const [family, weight] = v.split("|");

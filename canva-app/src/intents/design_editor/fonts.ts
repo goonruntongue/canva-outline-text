@@ -5,19 +5,26 @@
 // document.fonts.load() で実際に使う文字の分だけがダウンロードされる。
 
 export type FontDef = {
-  label: string;
+  /** フォントの表示名（固有名詞なので翻訳しない） */
+  fontName: string;
   family: string;
   weight: number;
 };
 
+export const DEFAULT_FONT: FontDef = {
+  fontName: "Dela Gothic One",
+  family: "Dela Gothic One",
+  weight: 400,
+};
+
 export const FONTS: FontDef[] = [
-  { label: "Dela Gothic One", family: "Dela Gothic One", weight: 400 },
-  { label: "M PLUS Rounded 1c", family: "M PLUS Rounded 1c", weight: 800 },
-  { label: "Zen Maru Gothic", family: "Zen Maru Gothic", weight: 900 },
-  { label: "Noto Sans JP", family: "Noto Sans JP", weight: 900 },
-  { label: "RocknRoll One", family: "RocknRoll One", weight: 400 },
-  { label: "Mochiy Pop One", family: "Mochiy Pop One", weight: 400 },
-  { label: "Kosugi Maru", family: "Kosugi Maru", weight: 400 },
+  DEFAULT_FONT,
+  { fontName: "M PLUS Rounded 1c", family: "M PLUS Rounded 1c", weight: 800 },
+  { fontName: "Zen Maru Gothic", family: "Zen Maru Gothic", weight: 900 },
+  { fontName: "Noto Sans JP", family: "Noto Sans JP", weight: 900 },
+  { fontName: "RocknRoll One", family: "RocknRoll One", weight: 400 },
+  { fontName: "Mochiy Pop One", family: "Mochiy Pop One", weight: 400 },
+  { fontName: "Kosugi Maru", family: "Kosugi Maru", weight: 400 },
 ];
 
 const registered = new Map<string, Promise<void>>();
@@ -92,5 +99,5 @@ export async function registerCustomFont(file: File): Promise<FontDef> {
   if (old) document.fonts.delete(old);
   document.fonts.add(face);
   customFaces.set(family, face);
-  return { label: base, family, weight: 400 };
+  return { fontName: base, family, weight: 400 };
 }

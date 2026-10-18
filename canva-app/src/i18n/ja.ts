@@ -2,7 +2,7 @@
 // Canva の公式翻訳が届くまでの間、日本語環境ではこちらを表示する。
 // 元の文言（messages.ts の defaultMessage）と一字一句同じキーにすること。
 export const JA: Record<string, string> = {
-  "Outline\nText": "ふちどり\n文字",
+  "Outline Text": "ふちどり\n文字",
   "Add to design": "デザインに追加",
   "Update selected element": "選択中の要素を更新",
   "You're editing the selected outlined text. Make your changes, then click “Update selected element”.":
