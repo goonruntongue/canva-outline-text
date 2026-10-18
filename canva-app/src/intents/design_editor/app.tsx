@@ -297,15 +297,15 @@ export const App = () => {
 
   return (
     <div className={styles.scrollContainer}>
-      <Rows spacing="2u">
-        {/* プレビューとボタンは、スクロールしても上に固定 */}
-        <div
+      {/* プレビューとボタンは、スクロールしても上に固定。
+          Rows は子要素を個別の枠で包むため、固定部分は Rows の外に置く */}
+      <div
           style={{
             position: "sticky",
             top: 0,
             zIndex: 2,
             background: "var(--ui-kit-elevation-surface-bg)",
-            paddingBottom: 8,
+            paddingBottom: 16,
             display: "flex",
             flexDirection: "column",
             gap: 8,
@@ -351,7 +351,8 @@ export const App = () => {
         >
           {updateElement ? "選択中の要素を更新" : "デザインに追加"}
         </Button>
-        </div>
+      </div>
+      <Rows spacing="2u">
 
         <Title size="small">テキスト</Title>
         <FormField
