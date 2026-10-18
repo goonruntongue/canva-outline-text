@@ -302,7 +302,10 @@ export const App = () => {
       <div
           style={{
             position: "sticky",
-            top: 0,
+            // スクロール領域の上余白ぶん上げて、すき間から下の項目が見えないようにする
+            top: "calc(-1 * var(--ui-kit-space-200))",
+            marginTop: "calc(-1 * var(--ui-kit-space-200))",
+            paddingTop: "var(--ui-kit-space-200)",
             zIndex: 2,
             background: "var(--ui-kit-elevation-surface-bg)",
             paddingBottom: 16,
