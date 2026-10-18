@@ -5,7 +5,7 @@
     "node": "^22 || ^24"
   },
   "scripts": {
-    "build": "npx @canva/cli apps build",
+    "build": "canva-app-scripts build",
     "format": "prettier '**/*.{css,ts,tsx}' --no-config --write",
     "format:check": "prettier '**/*.{css,ts,tsx}' --no-config --check",
     "format:file": "prettier $1 --no-config --write",
@@ -13,7 +13,7 @@
     "lint:fix": "eslint . --fix",
     "lint:check": "npm run lint && npm run lint:types",
     "lint:types": "tsc",
-    "start": "npx @canva/cli apps start",
+    "start": "canva-app-scripts dev",
     "start:preview": "npx @canva/cli apps start --preview",
     "test": "jest --no-cache --passWithNoTests",
     "test:watch": "jest --watchAll",
