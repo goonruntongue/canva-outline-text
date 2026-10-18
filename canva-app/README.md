@@ -32,13 +32,27 @@ npm start
    - `canva:design:content:write`
    - `canva:asset:private:write`
 
+## 審査用の翻訳ファイル
+
+画面の文言は英語が元の言語です（Canva のルール）。審査に出すときは、Developer Portal の「コードアップロード」→「Translations」に `translations/messages_en.json` をアップロードします。
+
+文言を変えたら、次のコマンドで作り直してください。
+
+```
+npm run translations
+```
+
+公開されて Canva の公式翻訳が届くまでは、日本語環境では `src/i18n/ja.ts` の日本語訳が表示されます。文言を追加・変更したら、`ja.ts` にも同じ英語をキーにして日本語訳を追加してください。
+
 ## ファイル構成
 
 - `src/intents/design_editor/app.tsx` … パネルのUI
 - `src/intents/design_editor/outline_render.ts` … 縁取りの描画処理
-- `src/intents/design_editor/fonts.ts` … Google Fonts の読み込み（unicode-range 分割に対応）
+- `src/intents/design_editor/fonts.ts` … Google Fonts と手持ちフォントファイルの読み込み
+- `src/intents/design_editor/messages.ts` … 画面の文言（英語）
+- `src/i18n/ja.ts` / `src/i18n/provider.tsx` … 公開前に使う日本語訳と、言語の切り替え
+- `translations/messages_en.json` … 審査提出用の翻訳ファイル
 
 ## 今後の課題
 
-- 挿入した画像はあとから文字を編集できない。App Element を使えば、設定を要素に保存して再編集できるようにできる
 - Google Fonts への外部通信があるため、一般公開の審査前に、フォントの同梱やライセンス表記を検討する
