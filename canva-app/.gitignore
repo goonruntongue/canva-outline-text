@@ -7,3 +7,6 @@
 dist
 node_modules
 .swc
+
+# lint の結果ファイル
+lint.txt
