@@ -1,4 +1,4 @@
-import { useFeatureSupport, useSelection } from "@canva/app-hooks";
+import { useSelection } from "@canva/app-hooks";
 import {
   Alert,
   Button,
@@ -20,7 +20,8 @@ import type {
   ColorSelectionScope,
 } from "@canva/asset";
 import { openColorSelector, upload } from "@canva/asset";
-import { addElementAtCursor, addElementAtPoint } from "@canva/design";
+import type { AppElementOptions, ImageRef } from "@canva/design";
+import { initAppElement } from "@canva/design";
 import { useEffect, useRef, useState } from "react";
 import * as styles from "styles/components.css";
 import { ensureFont, FONTS } from "./fonts";
@@ -46,6 +47,37 @@ const INITIAL: OutlineSettings = {
   join: "round",
   layers: PRESETS.pop!.layers.map((l) => ({ ...l })),
 };
+
+// 再編集用に App Element に保存するデータ（上限 5KB）
+type ElementData = {
+  /** OutlineSettings と画質を JSON 文字列で保存 */
+  settings: string;
+  imageRef: string;
+  width: number;
+  height: number;
+  altText: string;
+};
+
+type SavedSettings = OutlineSettings & { exportScale: string };
+
+const MAX_TEXT_LENGTH = 500;
+
+// 要素の中身は、アップロード済み画像 1 枚
+const appElementClient = initAppElement<ElementData>({
+  render: (data) => [
+    {
+      type: "image",
+      ref: data.imageRef as ImageRef,
+      top: 0,
+      left: 0,
+      width: data.width,
+      height: data.height,
+      altText: { text: data.altText, decorative: false },
+    },
+  ],
+});
+
+type UpdateFn = (opts: AppElementOptions<ElementData>) => Promise<void>;
 
 const pickColor = (anchor: Anchor, onPick: (hex: string) => void) => {
   openColorSelector(anchor, {
@@ -95,12 +127,29 @@ export const App = () => {
   const [error, setError] = useState<string | undefined>();
   const [inserting, setInserting] = useState(false);
   const previewRef = useRef<HTMLCanvasElement>(null);
+  // 既存の要素を選択中なら、その要素を更新する関数が入る
+  const [updateElement, setUpdateElement] = useState<UpdateFn | undefined>();
 
   const selection = useSelection("plaintext");
-  const isSupported = useFeatureSupport();
-  const addElement = [addElementAtPoint, addElementAtCursor].find((fn) =>
-    isSupported(fn),
-  );
+
+  // デザイン上で、このアプリで作った要素が選ばれたら設定を読み込む
+  useEffect(() => {
+    appElementClient.registerOnElementChange((appElement) => {
+      if (!appElement) {
+        setUpdateElement(undefined);
+        return;
+      }
+      try {
+        const saved = JSON.parse(appElement.data.settings) as SavedSettings;
+        const { exportScale: savedScale, ...settings } = saved;
+        setS(settings);
+        setExportScale(savedScale || "2");
+      } catch {
+        // 読めないデータは無視して、現在の設定のまま更新できるようにする
+      }
+      setUpdateElement(() => appElement.update);
+    });
+  }, []);
 
   const update = (patch: Partial<OutlineSettings>) =>
     setS((prev) => ({ ...prev, ...patch }));
@@ -148,13 +197,16 @@ export const App = () => {
   };
 
   const insert = async () => {
-    if (!addElement) return;
     setInserting(true);
     setError(undefined);
     try {
       await ensureFont(currentFont, s.text);
       const canvas = document.createElement("canvas");
-      renderOutlineText(canvas, s, Number(exportScale));
+      const { width, height } = renderOutlineText(
+        canvas,
+        s,
+        Number(exportScale),
+      );
       const dataUrl = canvas.toDataURL("image/png");
 
       const asset = await upload({
@@ -167,14 +219,27 @@ export const App = () => {
         aiDisclosure: "none",
       });
 
-      await addElement({
-        type: "image",
-        ref: asset.ref,
-        altText: { text: s.text.replace(/\n/g, " "), decorative: false },
-      });
+      const saved: SavedSettings = { ...s, exportScale };
+      const data: ElementData = {
+        settings: JSON.stringify(saved),
+        imageRef: asset.ref,
+        width,
+        height,
+        altText: s.text.replace(/\n/g, " ").slice(0, 100),
+      };
+
+      if (updateElement) {
+        await updateElement({ data });
+      } else {
+        await appElementClient.addElement({ data });
+      }
       await asset.whenUploaded();
     } catch {
-      setError("デザインへの追加に失敗しました。もう一度お試しください。");
+      setError(
+        updateElement
+          ? "要素の更新に失敗しました。もう一度お試しください。"
+          : "デザインへの追加に失敗しました。もう一度お試しください。",
+      );
     } finally {
       setInserting(false);
     }
@@ -204,14 +269,19 @@ export const App = () => {
 
         {error && <Alert tone="critical">{error}</Alert>}
 
+        {updateElement && (
+          <Alert tone="info">
+            選択中の縁取り文字を編集しています。変更したら「更新」を押してください。
+          </Alert>
+        )}
         <Button
           variant="primary"
           stretch
           onClick={insert}
           loading={inserting}
-          disabled={!addElement || !s.text.trim()}
+          disabled={!s.text.trim()}
         >
-          デザインに追加
+          {updateElement ? "選択中の要素を更新" : "デザインに追加"}
         </Button>
 
         <Title size="small">テキスト</Title>
@@ -223,7 +293,8 @@ export const App = () => {
               {...props}
               minRows={2}
               autoGrow
-              onChange={(value) => update({ text: value })}
+              maxLength={MAX_TEXT_LENGTH}
+              onChange={(value) => update({ text: value.slice(0, MAX_TEXT_LENGTH) })}
             />
           )}
         />
