@@ -108,10 +108,9 @@ export function renderOutlineText(
   return { width: W, height: H };
 }
 
-export const PRESETS: Record<string, { label: string; layers: OutlineLayer[] }> =
+export const PRESETS: Record<"pop" | "candy" | "mono", { layers: OutlineLayer[] }> =
   {
     pop: {
-      label: "ポップ",
       layers: [
         { width: 10, color: "#ff3d7f" },
         { width: 8, color: "#ffffff" },
@@ -119,7 +118,6 @@ export const PRESETS: Record<string, { label: string; layers: OutlineLayer[] }> 
       ],
     },
     candy: {
-      label: "キャンディ",
       layers: [
         { width: 8, color: "#ff8fb1" },
         { width: 6, color: "#fff3a6" },
@@ -128,7 +126,6 @@ export const PRESETS: Record<string, { label: string; layers: OutlineLayer[] }> 
       ],
     },
     mono: {
-      label: "モノ",
       layers: [
         { width: 12, color: "#111111" },
         { width: 6, color: "#ffffff" },

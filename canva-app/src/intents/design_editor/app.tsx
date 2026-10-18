@@ -24,6 +24,7 @@ import { openColorSelector, upload } from "@canva/asset";
 import type { AppElementOptions, ImageRef } from "@canva/design";
 import { initAppElement } from "@canva/design";
 import { useEffect, useRef, useState } from "react";
+import { useIntl } from "react-intl";
 import * as styles from "styles/components.css";
 import type { FontDef } from "./fonts";
 import {
@@ -42,11 +43,18 @@ import type {
   TextAlign,
 } from "./outline_render";
 import { PRESETS, renderOutlineText } from "./outline_render";
+import { messages } from "./messages";
+
+const PRESET_LABELS = {
+  pop: messages.presetPop,
+  candy: messages.presetCandy,
+  mono: messages.presetMono,
+} as const;
 
 const DEFAULT_FONT = FONTS[0]!;
 
 const INITIAL: OutlineSettings = {
-  text: "ふちどり\n文字",
+  text: "",
   fontFamily: DEFAULT_FONT.family,
   fontWeight: DEFAULT_FONT.weight,
   fontSize: 140,
@@ -132,7 +140,12 @@ const SliderRow = (props: {
 );
 
 export const App = () => {
-  const [s, setS] = useState<OutlineSettings>(INITIAL);
+  const intl = useIntl();
+  const t = intl.formatMessage;
+  const [s, setS] = useState<OutlineSettings>(() => ({
+    ...INITIAL,
+    text: intl.formatMessage(messages.sampleText),
+  }));
   const [exportScale, setExportScale] = useState<string>("2");
   const [error, setError] = useState<string | undefined>();
   const [inserting, setInserting] = useState(false);
@@ -179,7 +192,9 @@ export const App = () => {
     isCustomFont(s.fontFamily) && !isCustomFontLoaded(s.fontFamily);
   if (missingCustom) {
     fontOptions.push({
-      label: `${customFontLabel(s.fontFamily)}（未読み込み）`,
+      label: t(messages.fontNotLoadedSuffix, {
+        name: customFontLabel(s.fontFamily),
+      }),
       family: s.fontFamily,
       weight: s.fontWeight,
     });
@@ -192,8 +207,10 @@ export const App = () => {
 
   const fontErrorMessage = (e: unknown) =>
     e instanceof MissingCustomFontError
-      ? `フォント「${customFontLabel(s.fontFamily)}」が読み込まれていません。同じフォントファイルをもう一度読み込んでください。`
-      : "フォントの読み込みに失敗しました。通信環境を確認してください。";
+      ? t(messages.errorCustomFontMissing, {
+          name: customFontLabel(s.fontFamily),
+        })
+      : t(messages.errorFontNetwork);
 
   const loadFontFile = async (files: File[]) => {
     const file = files[0];
@@ -207,7 +224,7 @@ export const App = () => {
       update({ fontFamily: font.family, fontWeight: font.weight });
       setError(undefined);
     } catch {
-      setError("このフォントファイルは読み込めませんでした。");
+      setError(t(messages.errorFontFile));
     }
   };
 
@@ -287,8 +304,8 @@ export const App = () => {
         e instanceof MissingCustomFontError
           ? fontErrorMessage(e)
           : updateElement
-          ? "要素の更新に失敗しました。もう一度お試しください。"
-          : "デザインへの追加に失敗しました。もう一度お試しください。",
+          ? t(messages.errorUpdate)
+          : t(messages.errorAdd),
       );
     } finally {
       setInserting(false);
@@ -296,15 +313,16 @@ export const App = () => {
   };
 
   return (
-    <div className={styles.scrollContainer}>
+    // スクロール領域の上余白をなくし、その余白は固定部分の内側に持たせる。
+    // こうすると固定部分の上端がスクロール領域の上端にぴったり付き、
+    // すき間から下の項目が見えることがない。
+    <div className={styles.scrollContainer} style={{ paddingTop: 0 }}>
       {/* プレビューとボタンは、スクロールしても上に固定。
           Rows は子要素を個別の枠で包むため、固定部分は Rows の外に置く */}
       <div
           style={{
             position: "sticky",
-            // スクロール領域の上余白ぶん上げて、すき間から下の項目が見えないようにする
-            top: "calc(-1 * var(--ui-kit-space-200))",
-            marginTop: "calc(-1 * var(--ui-kit-space-200))",
+            top: 0,
             paddingTop: "var(--ui-kit-space-200)",
             zIndex: 2,
             background: "var(--ui-kit-elevation-surface-bg)",
@@ -341,9 +359,7 @@ export const App = () => {
         {error && <Alert tone="critical">{error}</Alert>}
 
         {updateElement && (
-          <Alert tone="info">
-            選択中の縁取り文字を編集しています。変更したら「更新」を押してください。
-          </Alert>
+          <Alert tone="info">{t(messages.editingNotice)}</Alert>
         )}
         <Button
           variant="primary"
@@ -352,14 +368,14 @@ export const App = () => {
           loading={inserting}
           disabled={!s.text.trim()}
         >
-          {updateElement ? "選択中の要素を更新" : "デザインに追加"}
+          {updateElement ? t(messages.updateSelected) : t(messages.addToDesign)}
         </Button>
       </div>
       <Rows spacing="2u">
 
-        <Title size="small">テキスト</Title>
+        <Title size="small">{t(messages.textHeading)}</Title>
         <FormField
-          label="文字"
+          label={t(messages.textLabel)}
           value={s.text}
           control={(props) => (
             <MultilineInput
@@ -377,11 +393,11 @@ export const App = () => {
           onClick={loadSelection}
           disabled={selection.count === 0}
         >
-          選択中のテキストを読み込む
+          {t(messages.loadSelection)}
         </Button>
 
         <FormField
-          label="フォント"
+          label={t(messages.fontLabel)}
           value={`${s.fontFamily}|${s.fontWeight}`}
           control={(props) => (
             <Select
@@ -399,33 +415,32 @@ export const App = () => {
           )}
         />
         <Text size="small" tone="tertiary">
-          手持ちのフォントファイル（.ttf / .otf / .woff / .woff2）も使えます。
-          読み込んだフォントは、アプリを開いている間だけ有効です。
+          {t(messages.customFontHint)}
         </Text>
         <FileInput
           accept={[".ttf", ".otf", ".woff", ".woff2"]}
           stretchButton
           onDropAcceptedFiles={loadFontFile}
           onDropRejectedFiles={() =>
-            setError("フォントファイル（.ttf / .otf / .woff / .woff2）を選んでください。")
+            setError(t(messages.errorFontFileType))
           }
         />
         <SliderRow
-          label="サイズ"
+          label={t(messages.sizeLabel)}
           value={s.fontSize}
           min={24}
           max={300}
           onChange={(v) => update({ fontSize: v })}
         />
         <SliderRow
-          label="字間"
+          label={t(messages.trackingLabel)}
           value={s.tracking}
           min={-40}
           max={80}
           onChange={(v) => update({ tracking: v })}
         />
         <SliderRow
-          label="行間"
+          label={t(messages.leadingLabel)}
           value={s.leading}
           min={80}
           max={200}
@@ -436,14 +451,14 @@ export const App = () => {
           value={s.align}
           onChange={(v: TextAlign) => update({ align: v })}
           options={[
-            { value: "left", label: "左" },
-            { value: "center", label: "中央" },
-            { value: "right", label: "右" },
+            { value: "left", label: t(messages.alignLeft) },
+            { value: "center", label: t(messages.alignCenter) },
+            { value: "right", label: t(messages.alignRight) },
           ]}
         />
         <Columns spacing="1u" alignY="center">
           <Column>
-            <Text size="small">文字色</Text>
+            <Text size="small">{t(messages.textColorLabel)}</Text>
           </Column>
           <Column width="containedContent">
             <Swatch
@@ -457,18 +472,18 @@ export const App = () => {
           </Column>
         </Columns>
 
-        <Title size="small">角の結合</Title>
+        <Title size="small">{t(messages.joinHeading)}</Title>
         <SegmentedControl
           value={s.join}
           onChange={(v: LineJoin) => update({ join: v })}
           options={[
-            { value: "round", label: "ラウンド" },
-            { value: "miter", label: "マイター" },
-            { value: "bevel", label: "ベベル" },
+            { value: "round", label: t(messages.joinRound) },
+            { value: "miter", label: t(messages.joinMiter) },
+            { value: "bevel", label: t(messages.joinBevel) },
           ]}
         />
 
-        <Title size="small">アウトライン（上が内側）</Title>
+        <Title size="small">{t(messages.outlinesHeading)}</Title>
         {s.layers.map((layer, i) => (
           <Rows spacing="0.5u" key={i}>
             <Columns spacing="1u" alignY="center">
@@ -484,7 +499,7 @@ export const App = () => {
               </Column>
               <Column>
                 <Text size="small">
-                  {i + 1}層目 · 太さ {layer.width}
+                  {t(messages.layerLabel, { index: i + 1, width: layer.width })}
                 </Text>
               </Column>
               <Column width="containedContent">
@@ -497,7 +512,7 @@ export const App = () => {
                     }))
                   }
                 >
-                  削除
+                  {t(messages.removeLayer)}
                 </Button>
               </Column>
             </Columns>
@@ -526,7 +541,7 @@ export const App = () => {
             })
           }
         >
-          ＋ 外側に追加
+          {t(messages.addLayer)}
         </Button>
         <Columns spacing="1u">
           {Object.entries(PRESETS).map(([key, preset]) => (
@@ -538,20 +553,20 @@ export const App = () => {
                   update({ layers: preset.layers.map((l) => ({ ...l })) })
                 }
               >
-                {preset.label}
+                {t(PRESET_LABELS[key as keyof typeof PRESET_LABELS])}
               </Button>
             </Column>
           ))}
         </Columns>
 
-        <Title size="small">画質</Title>
+        <Title size="small">{t(messages.qualityHeading)}</Title>
         <SegmentedControl
           value={exportScale}
           onChange={(v: string) => setExportScale(v)}
           options={[
-            { value: "1", label: "標準" },
-            { value: "2", label: "高" },
-            { value: "3", label: "最高" },
+            { value: "1", label: t(messages.qualityStandard) },
+            { value: "2", label: t(messages.qualityHigh) },
+            { value: "3", label: t(messages.qualityMax) },
           ]}
         />
       </Rows>
