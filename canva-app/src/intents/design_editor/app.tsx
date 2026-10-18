@@ -4,6 +4,7 @@ import {
   Button,
   Column,
   Columns,
+  FileInput,
   FormField,
   MultilineInput,
   Rows,
@@ -24,7 +25,16 @@ import type { AppElementOptions, ImageRef } from "@canva/design";
 import { initAppElement } from "@canva/design";
 import { useEffect, useRef, useState } from "react";
 import * as styles from "styles/components.css";
-import { ensureFont, FONTS } from "./fonts";
+import type { FontDef } from "./fonts";
+import {
+  customFontLabel,
+  ensureFont,
+  FONTS,
+  isCustomFont,
+  isCustomFontLoaded,
+  MissingCustomFontError,
+  registerCustomFont,
+} from "./fonts";
 import type {
   LineJoin,
   OutlineLayer,
@@ -160,10 +170,46 @@ export const App = () => {
       layers: prev.layers.map((l, i) => (i === index ? { ...l, ...patch } : l)),
     }));
 
+  // 読み込んだフォントファイル（このセッション中だけ有効）
+  const [customFonts, setCustomFonts] = useState<FontDef[]>([]);
+
+  const fontOptions: FontDef[] = [...FONTS, ...customFonts];
+  // 再編集で、まだ読み込まれていない手持ちフォントが指定されている場合
+  const missingCustom =
+    isCustomFont(s.fontFamily) && !isCustomFontLoaded(s.fontFamily);
+  if (missingCustom) {
+    fontOptions.push({
+      label: `${customFontLabel(s.fontFamily)}（未読み込み）`,
+      family: s.fontFamily,
+      weight: s.fontWeight,
+    });
+  }
+
   const currentFont =
-    FONTS.find(
+    fontOptions.find(
       (f) => f.family === s.fontFamily && f.weight === s.fontWeight,
     ) ?? DEFAULT_FONT;
+
+  const fontErrorMessage = (e: unknown) =>
+    e instanceof MissingCustomFontError
+      ? `フォント「${customFontLabel(s.fontFamily)}」が読み込まれていません。同じフォントファイルをもう一度読み込んでください。`
+      : "フォントの読み込みに失敗しました。通信環境を確認してください。";
+
+  const loadFontFile = async (files: File[]) => {
+    const file = files[0];
+    if (!file) return;
+    try {
+      const font = await registerCustomFont(file);
+      setCustomFonts((prev) => [
+        ...prev.filter((f) => f.family !== font.family),
+        font,
+      ]);
+      update({ fontFamily: font.family, fontWeight: font.weight });
+      setError(undefined);
+    } catch {
+      setError("このフォントファイルは読み込めませんでした。");
+    }
+  };
 
   // プレビュー描画
   useEffect(() => {
@@ -178,9 +224,9 @@ export const App = () => {
           Math.min(window.devicePixelRatio || 1, 2),
         );
         setError(undefined);
-      } catch {
+      } catch (e) {
         if (!cancelled) {
-          setError("フォントの読み込みに失敗しました。通信環境を確認してください。");
+          setError(fontErrorMessage(e));
         }
       }
     };
@@ -188,7 +234,9 @@ export const App = () => {
     return () => {
       cancelled = true;
     };
-  }, [s, currentFont]);
+    // customFonts: フォント読み込み後に描き直すため
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s, currentFont.family, currentFont.weight, customFonts]);
 
   const loadSelection = async () => {
     const draft = await selection.read();
@@ -234,9 +282,11 @@ export const App = () => {
         await appElementClient.addElement({ data });
       }
       await asset.whenUploaded();
-    } catch {
+    } catch (e) {
       setError(
-        updateElement
+        e instanceof MissingCustomFontError
+          ? fontErrorMessage(e)
+          : updateElement
           ? "要素の更新に失敗しました。もう一度お試しください。"
           : "デザインへの追加に失敗しました。もう一度お試しください。",
       );
@@ -248,6 +298,19 @@ export const App = () => {
   return (
     <div className={styles.scrollContainer}>
       <Rows spacing="2u">
+        {/* プレビューとボタンは、スクロールしても上に固定 */}
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 2,
+            background: "var(--ui-kit-elevation-surface-bg)",
+            paddingBottom: 8,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
         <div
           style={{
             borderRadius: 8,
@@ -263,7 +326,12 @@ export const App = () => {
         >
           <canvas
             ref={previewRef}
-            style={{ maxWidth: "100%", height: "auto" }}
+            style={{
+              maxWidth: "100%",
+              maxHeight: 180,
+              width: "auto",
+              height: "auto",
+            }}
           />
         </div>
 
@@ -283,6 +351,7 @@ export const App = () => {
         >
           {updateElement ? "選択中の要素を更新" : "デザインに追加"}
         </Button>
+        </div>
 
         <Title size="small">テキスト</Title>
         <FormField
@@ -314,7 +383,7 @@ export const App = () => {
             <Select
               {...props}
               stretch
-              options={FONTS.map((f) => ({
+              options={fontOptions.map((f) => ({
                 value: `${f.family}|${f.weight}`,
                 label: f.label,
               }))}
@@ -324,6 +393,18 @@ export const App = () => {
               }}
             />
           )}
+        />
+        <Text size="small" tone="tertiary">
+          手持ちのフォントファイル（.ttf / .otf / .woff / .woff2）も使えます。
+          読み込んだフォントは、アプリを開いている間だけ有効です。
+        </Text>
+        <FileInput
+          accept={[".ttf", ".otf", ".woff", ".woff2"]}
+          stretchButton
+          onDropAcceptedFiles={loadFontFile}
+          onDropRejectedFiles={() =>
+            setError("フォントファイル（.ttf / .otf / .woff / .woff2）を選んでください。")
+          }
         />
         <SliderRow
           label="サイズ"

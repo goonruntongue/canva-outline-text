@@ -45,6 +45,12 @@ async function registerFontFaces(f: FontDef): Promise<void> {
 
 /** フォントを登録し、text の描画に必要な分を読み込み終えるまで待つ */
 export async function ensureFont(f: FontDef, text: string): Promise<void> {
+  if (isCustomFont(f.family)) {
+    if (!customFaces.has(f.family)) {
+      throw new MissingCustomFontError(f.family);
+    }
+    return;
+  }
   const key = `${f.family}:${f.weight}`;
   let p = registered.get(key);
   if (!p) {
@@ -54,4 +60,37 @@ export async function ensureFont(f: FontDef, text: string): Promise<void> {
   }
   await p;
   await document.fonts.load(`${f.weight} 40px "${f.family}"`, text || "あ");
+}
+
+// ---- 手持ちのフォントファイル（.ttf / .otf / .woff / .woff2）----
+// フォントのデータは要素に保存できない（上限 5KB）ため、
+// 再編集時には同じファイルをもう一度読み込んでもらう。
+
+export const CUSTOM_PREFIX = "custom:";
+const customFaces = new Map<string, FontFace>();
+
+export class MissingCustomFontError extends Error {}
+
+export const isCustomFont = (family: string) =>
+  family.startsWith(CUSTOM_PREFIX);
+
+export const customFontLabel = (family: string) =>
+  family.slice(CUSTOM_PREFIX.length);
+
+export const isCustomFontLoaded = (family: string) => customFaces.has(family);
+
+export async function registerCustomFont(file: File): Promise<FontDef> {
+  const base = file.name
+    .replace(/\.(ttf|otf|woff2?)$/i, "")
+    .replace(/[|"\\]/g, "_");
+  const family = `${CUSTOM_PREFIX}${base}`;
+  const face = new FontFace(family, await file.arrayBuffer(), {
+    weight: "400",
+  });
+  await face.load();
+  const old = customFaces.get(family);
+  if (old) document.fonts.delete(old);
+  document.fonts.add(face);
+  customFaces.set(family, face);
+  return { label: base, family, weight: 400 };
 }
