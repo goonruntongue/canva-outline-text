@@ -18,7 +18,9 @@ type CanvaI18n = {
   getLocalizedMessages?: () => { messages?: Record<string, unknown> };
 };
 
-const canvaHasTranslations = (): boolean => {
+// Canva から届いた翻訳に日本語が含まれているか
+// （公開前は空、または英語のままのことがあるため、中身で判定する）
+const canvaHasJapaneseTranslations = (): boolean => {
   try {
     const i18n = (
       window as unknown as {
@@ -26,14 +28,33 @@ const canvaHasTranslations = (): boolean => {
       }
     ).canva_sdk?.platform?.v2?.i18n;
     const messages = i18n?.getLocalizedMessages?.().messages ?? {};
-    return Object.keys(messages).length > 0;
+    return /[\u3040-\u30ff\u4e00-\u9fff]/.test(JSON.stringify(messages));
   } catch {
     return false;
   }
 };
 
-const isJapanese = () =>
-  (document.documentElement.lang || "").toLowerCase().startsWith("ja");
+const startsWithJa = (v: string | undefined | null) =>
+  (v || "").toLowerCase().startsWith("ja");
+
+// Canva が伝える言語（公開前のアプリでは英語扱いになることがある）
+const canvaLocaleIsJa = () => startsWithJa(document.documentElement.lang);
+
+// ブラウザの言語設定（Canva が言語を伝えない場合の手がかり）
+const browserPrefersJa = () =>
+  startsWithJa(navigator.language) ||
+  (navigator.languages || []).slice(0, 1).some(startsWithJa);
+
+/**
+ * 同梱の日本語訳を使うか。
+ * - Canva から日本語の公式翻訳が届いている → 公式を使う
+ * - それ以外で、Canva かブラウザの言語が日本語 → 同梱の日本語訳を使う
+ */
+const shouldUseBundledJa = () => {
+  if (!USE_BUNDLED_JA) return false;
+  if (canvaHasJapaneseTranslations()) return false;
+  return canvaLocaleIsJa() || browserPrefersJa();
+};
 
 const buildBundledJaIntl = () => {
   const intl = createIntl(
@@ -57,7 +78,7 @@ const buildBundledJaIntl = () => {
 let bundledJaIntl: ReturnType<typeof buildBundledJaIntl> | undefined;
 
 export const I18nProvider = ({ children }: PropsWithChildren) => {
-  if (USE_BUNDLED_JA && isJapanese() && !canvaHasTranslations()) {
+  if (shouldUseBundledJa()) {
     bundledJaIntl ??= buildBundledJaIntl();
     return <RawIntlProvider value={bundledJaIntl}>{children}</RawIntlProvider>;
   }
