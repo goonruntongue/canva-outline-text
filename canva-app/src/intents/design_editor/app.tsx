@@ -333,11 +333,16 @@ export const App = () => {
         >
         <div
           style={{
-            borderRadius: 8,
+            // 透明部分を示す市松模様。色は Canva のテーマ（ライト／ダーク）に合わせる
+            borderRadius: "var(--ui-kit-radius-element-standard)",
             padding: 8,
-            backgroundColor: "#e9e7e2",
-            backgroundImage:
-              "linear-gradient(45deg,#d6d3cc 25%,transparent 25%),linear-gradient(-45deg,#d6d3cc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#d6d3cc 75%),linear-gradient(-45deg,transparent 75%,#d6d3cc 75%)",
+            backgroundColor: "var(--ui-kit-elevation-surface-sunken-bg)",
+            backgroundImage: [
+              "linear-gradient(45deg, var(--ui-kit-color-control-border) 25%, transparent 25%)",
+              "linear-gradient(-45deg, var(--ui-kit-color-control-border) 25%, transparent 25%)",
+              "linear-gradient(45deg, transparent 75%, var(--ui-kit-color-control-border) 75%)",
+              "linear-gradient(-45deg, transparent 75%, var(--ui-kit-color-control-border) 75%)",
+            ].join(","),
             backgroundSize: "16px 16px",
             backgroundPosition: "0 0,0 8px,8px -8px,-8px 0",
             display: "flex",
