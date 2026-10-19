@@ -35,8 +35,8 @@ export const JA: Record<string, string> = {
   Standard: "標準",
   High: "高",
   Maximum: "最高",
-  "Couldn't load the font. Check your internet connection and try again.":
-    "フォントの読み込みに失敗しました。通信環境を確認してください。",
+  "Couldn't load the font, so a substitute font is shown for now. Check your internet connection.":
+    "フォントを読み込めなかったため、代わりのフォントで表示しています。通信環境を確認してください。",
   "The font “{name}” is not loaded. Upload the same font file again.":
     "フォント「{name}」が読み込まれていません。同じフォントファイルをもう一度読み込んでください。",
   "This font file couldn't be loaded.":

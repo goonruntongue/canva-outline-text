@@ -205,12 +205,23 @@ export const App = () => {
       (f) => f.family === s.fontFamily && f.weight === s.fontWeight,
     ) ?? DEFAULT_FONT;
 
-  const fontErrorMessage = (e: unknown) =>
-    e instanceof MissingCustomFontError
-      ? t(messages.errorCustomFontMissing, {
-          name: customFontLabel(s.fontFamily),
-        })
-      : t(messages.errorFontNetwork);
+  const customFontMissingMessage = () =>
+    t(messages.errorCustomFontMissing, {
+      name: customFontLabel(s.fontFamily),
+    });
+
+  // Google Fonts を読み込めなくても作業を止めないよう、代わりのフォントで続ける。
+  // 手持ちフォントの読み込み忘れだけはエラーとして止める。
+  const [fontFallback, setFontFallback] = useState(false);
+  const loadFontOrFallback = async () => {
+    try {
+      await ensureFont(currentFont, s.text);
+      setFontFallback(false);
+    } catch (e) {
+      if (e instanceof MissingCustomFontError) throw e;
+      setFontFallback(true);
+    }
+  };
 
   const loadFontFile = async (files: File[]) => {
     const file = files[0];
@@ -233,7 +244,7 @@ export const App = () => {
     let cancelled = false;
     const draw = async () => {
       try {
-        await ensureFont(currentFont, s.text);
+        await loadFontOrFallback();
         if (cancelled || !previewRef.current) return;
         renderOutlineText(
           previewRef.current,
@@ -242,8 +253,8 @@ export const App = () => {
         );
         setError(undefined);
       } catch (e) {
-        if (!cancelled) {
-          setError(fontErrorMessage(e));
+        if (!cancelled && e instanceof MissingCustomFontError) {
+          setError(customFontMissingMessage());
         }
       }
     };
@@ -264,7 +275,7 @@ export const App = () => {
     setInserting(true);
     setError(undefined);
     try {
-      await ensureFont(currentFont, s.text);
+      await loadFontOrFallback();
       const canvas = document.createElement("canvas");
       const { width, height } = renderOutlineText(
         canvas,
@@ -301,7 +312,7 @@ export const App = () => {
     } catch (e) {
       setError(
         e instanceof MissingCustomFontError
-          ? fontErrorMessage(e)
+          ? customFontMissingMessage()
           : updateElement
           ? t(messages.errorUpdate)
           : t(messages.errorAdd),
@@ -361,6 +372,9 @@ export const App = () => {
         </div>
 
         {error && <Alert tone="critical">{error}</Alert>}
+        {!error && fontFallback && (
+          <Alert tone="warn">{t(messages.warnFontFallback)}</Alert>
+        )}
 
         {updateElement && (
           <Alert tone="info">{t(messages.editingNotice)}</Alert>

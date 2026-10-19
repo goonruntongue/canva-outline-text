@@ -142,10 +142,11 @@ export const messages = defineMessages({
     defaultMessage: "Maximum",
     description: "Image quality option: 3x resolution",
   },
-  errorFontNetwork: {
+  warnFontFallback: {
     defaultMessage:
-      "Couldn't load the font. Check your internet connection and try again.",
-    description: "Error shown when a built-in web font fails to download",
+      "Couldn't load the font, so a substitute font is shown for now. Check your internet connection.",
+    description:
+      "Warning shown when a built-in web font can't be downloaded. The preview and added image use a system font instead until the connection recovers",
   },
   errorCustomFontMissing: {
     defaultMessage:

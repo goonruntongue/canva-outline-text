@@ -45,7 +45,8 @@ export function renderOutlineText(
   const letterSpacing = `${(s.tracking / 100) * size}px`;
   const totalOutline = s.layers.reduce((sum, l) => sum + l.width, 0);
   const pad = totalOutline + Math.ceil(size * 0.1);
-  const font = `${s.fontWeight} ${size}px "${s.fontFamily}"`;
+  // フォントが読み込めなかったときは、システムの太字ゴシックで代用する
+  const font = `${s.fontWeight} ${size}px "${s.fontFamily}", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif`;
 
   const applyFont = () => {
     ctx.font = font;

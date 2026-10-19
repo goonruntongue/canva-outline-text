@@ -29,14 +29,26 @@ export const FONTS: FontDef[] = [
 
 const registered = new Map<string, Promise<void>>();
 
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** 一時的な通信エラーに備えて、少し待って 1 回だけやり直す */
+async function fetchTextWithRetry(url: string): Promise<string> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Failed to load font CSS: ${res.status}`);
+      return await res.text();
+    } catch (e) {
+      if (attempt >= 1) throw e;
+      await wait(1000);
+    }
+  }
+}
+
 async function registerFontFaces(f: FontDef): Promise<void> {
   const familyParam = f.family.split(" ").map(encodeURIComponent).join("+");
   const url = `https://fonts.googleapis.com/css2?family=${familyParam}:wght@${f.weight}&display=swap`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Failed to load font CSS: ${res.status}`);
-  }
-  const css = await res.text();
+  const css = await fetchTextWithRetry(url);
   const blocks = css.match(/@font-face\s*{[^}]*}/g) ?? [];
   for (const block of blocks) {
     const src = /src:\s*url\(([^)]+)\)/.exec(block)?.[1];
