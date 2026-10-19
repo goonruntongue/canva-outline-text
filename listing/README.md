@@ -4,7 +4,9 @@ Canva Developer Portal の「アプリのリスト詳細」に入力する内容
 
 ## アプリ名（10文字未満を推奨。Canva / Pro は使えない）
 
-候補:
+**決定: Fuchidori**（日本語表示でも同じ名前に統一）
+
+検討した候補:
 - Fuchidori（9文字）… 日本語の「縁取り」。日本語の袋文字に特化したアプリであることが伝わる
 - Outliner（8文字）… 機能がそのまま伝わる。既存アプリとの重複は要確認
 - TextRim（7文字）
@@ -23,7 +25,7 @@ Wrap your text in as many outline layers as you like and choose round, miter or 
 
 ## アプリアイコン（512×512px・透明背景なし・角丸なし・文字なし）
 
-- `icon_pink.png` … 淡いピンク背景
+- `icon_pink.png` … 淡いピンク背景 **← 採用（開発者ページに登録済み）**
 - `icon_navy.png` … 紺背景
 
 ## 必要なリンク（ログイン不要で見られるページ。SNSは不可）
