@@ -1,0 +1,34 @@
+# 掲載情報（下書き）
+
+Canva Developer Portal の「アプリのリスト詳細」に入力する内容。英語が元の言語（審査後に Canva が翻訳）。
+
+## アプリ名（10文字未満を推奨。Canva / Pro は使えない）
+
+候補:
+- Fuchidori（9文字）… 日本語の「縁取り」。日本語の袋文字に特化したアプリであることが伝わる
+- Outliner（8文字）… 機能がそのまま伝わる。既存アプリとの重複は要確認
+- TextRim（7文字）
+
+## 短い説明（50文字以内・一文なら末尾の句読点なし）
+
+Add layered outlines with rounded corners to text
+
+（49文字）
+
+## 説明（200文字以内・各文を句読点で終える・宣伝文句なし）
+
+Wrap your text in as many outline layers as you like and choose round, miter or bevel corners. Japanese fonts are included, and you can select the result in your design later to edit it.
+
+（186文字）
+
+## アプリアイコン（512×512px・透明背景なし・角丸なし・文字なし）
+
+- `icon_pink.png` … 淡いピンク背景
+- `icon_navy.png` … 紺背景
+
+## 必要なリンク（ログイン不要で見られるページ。SNSは不可）
+
+- 利用規約の URL
+- プライバシーポリシーの URL
+- サポートの URL
+- 会社（または個人）の Web サイトの URL
