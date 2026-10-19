@@ -63,6 +63,10 @@
     "defaultMessage": "Corner style",
     "description": "Section heading for how the corners of the outline strokes are joined (round, miter or bevel), as in Adobe Illustrator"
   },
+  "KpY5D8": {
+    "defaultMessage": "Couldn't load the font, so a substitute font is shown for now. Check your internet connection.",
+    "description": "Warning shown when a built-in web font can't be downloaded. The preview and added image use a system font instead until the connection recovers"
+  },
   "LQaG1V": {
     "defaultMessage": "Mono",
     "description": "Preset button: black and white outlines"
@@ -130,10 +134,6 @@
   "qymUuG": {
     "defaultMessage": "Couldn't add to the design. Please try again.",
     "description": "Error shown when adding the outlined text to the design fails"
-  },
-  "r3JzFv": {
-    "defaultMessage": "Couldn't load the font. Check your internet connection and try again.",
-    "description": "Error shown when a built-in web font fails to download"
   },
   "rb5JMA": {
     "defaultMessage": "Remove",
