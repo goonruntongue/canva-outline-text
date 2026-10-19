@@ -1,309 +1,73 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>多重アウトライン文字</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@800&family=Noto+Sans+JP:wght@900&family=RocknRoll+One&family=Zen+Maru+Gothic:wght@900&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #f6f5f2; --panel: #ffffff; --text: #1d1d1f; --muted: #6b6b70;
-    --line: #e2e0db; --accent: #ff5a36; --checker: #e9e7e2;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #161617; --panel: #222224; --text: #f2f2f2; --muted: #a0a0a6;
-      --line: #36363a; --accent: #ff7a5c; --checker: #2c2c2f;
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font-family: "Noto Sans JP", system-ui, sans-serif; font-size: 14px;
-  }
-  header { padding: 16px; border-bottom: 1px solid var(--line); }
-  header h1 { margin: 0; font-size: 18px; }
-  header p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
-  main {
-    display: grid; grid-template-columns: 340px 1fr; gap: 16px;
-    padding: 16px; max-width: 1280px; margin: 0 auto;
-  }
-  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
-  .panel {
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 12px; padding: 14px;
-  }
-  .panel h2 { font-size: 13px; margin: 0 0 10px; color: var(--muted); font-weight: 700; }
-  .panel + .panel { margin-top: 12px; }
-  label.row { display: grid; grid-template-columns: 88px 1fr 44px; align-items: center; gap: 8px; margin: 8px 0; }
-  label.row span.val { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
-  textarea, select, input[type=text] {
-    width: 100%; font: inherit; color: var(--text); background: var(--bg);
-    border: 1px solid var(--line); border-radius: 8px; padding: 8px;
-  }
-  textarea { min-height: 70px; resize: vertical; }
-  input[type=range] { width: 100%; accent-color: var(--accent); }
-  input[type=color] { width: 36px; height: 30px; border: 1px solid var(--line); border-radius: 6px; padding: 0; background: none; }
-  .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-  .seg button { flex: 1; border: 0; background: transparent; color: var(--text); padding: 7px 4px; font: inherit; cursor: pointer; }
-  .seg button.on { background: var(--accent); color: #fff; }
-  .layer {
-    display: grid; grid-template-columns: 20px 36px 1fr 36px 28px; gap: 8px; align-items: center;
-    padding: 6px 0; border-top: 1px dashed var(--line);
-  }
-  .layer:first-child { border-top: 0; }
-  .layer .idx { color: var(--muted); font-size: 12px; text-align: center; }
-  .layer .w { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .iconbtn { border: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 6px; height: 28px; cursor: pointer; }
-  .btn {
-    width: 100%; border: 0; border-radius: 8px; padding: 10px; font: inherit; font-weight: 700;
-    cursor: pointer; background: var(--accent); color: #fff; margin-top: 8px;
-  }
-  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); font-weight: 400; }
-  .stage {
-    background-color: var(--panel);
-    background-image:
-      linear-gradient(45deg, var(--checker) 25%, transparent 25%),
-      linear-gradient(-45deg, var(--checker) 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, var(--checker) 75%),
-      linear-gradient(-45deg, transparent 75%, var(--checker) 75%);
-    background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0;
-    border: 1px solid var(--line); border-radius: 12px;
-    min-height: 360px; display: flex; align-items: center; justify-content: center;
-    padding: 16px; overflow: auto; position: sticky; top: 16px;
-  }
-  .stage canvas { max-width: 100%; height: auto; }
-  .meta { color: var(--muted); font-size: 12px; margin-top: 8px; text-align: right; }
-  .presets { display: flex; gap: 6px; flex-wrap: wrap; }
-  .presets button { flex: 1 1 auto; }
-</style>
+<title>Fuchidori — Layered text outlines for Canva</title>
+<meta name="description" content="Fuchidori is a Canva app that adds layered outlines with rounded corners to text.">
+<link rel="icon" href="assets/icon.png">
+<link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
-<header>
-  <h1>多重アウトライン文字</h1>
-  <p>Canvaアプリ化の前段プロトタイプ。透過PNGで書き出せます。</p>
-</header>
+<header class="site"><div class="inner">
+  <img src="assets/icon.png" alt="">
+  <a class="brand" href="">Fuchidori</a>
+  <nav>
+    <a href="support/">Support</a>
+    <a href="privacy/">Privacy</a>
+    <a href="terms/">Terms</a>
+  </nav>
+</div></header>
 <main>
-  <div>
-    <section class="panel">
-      <h2>テキスト</h2>
-      <textarea id="text">ふちどり
-文字</textarea>
-      <label class="row" style="grid-template-columns:88px 1fr;">フォント
-        <select id="font">
-          <option value='"Dela Gothic One"'>Dela Gothic One</option>
-          <option value='"M PLUS Rounded 1c"|800'>M PLUS Rounded 1c</option>
-          <option value='"Zen Maru Gothic"|900'>Zen Maru Gothic</option>
-          <option value='"Noto Sans JP"|900'>Noto Sans JP</option>
-          <option value='"RocknRoll One"'>RocknRoll One</option>
-        </select>
-      </label>
-      <label class="row">サイズ <input type="range" id="size" min="24" max="300" value="140"><span class="val" id="sizeV"></span></label>
-      <label class="row">字間 <input type="range" id="tracking" min="-40" max="80" value="0"><span class="val" id="trackingV"></span></label>
-      <label class="row">行間 <input type="range" id="leading" min="80" max="200" value="115"><span class="val" id="leadingV"></span></label>
-      <label class="row" style="grid-template-columns:88px 1fr;">揃え
-        <div class="seg" id="align">
-          <button data-v="left">左</button><button data-v="center" class="on">中央</button><button data-v="right">右</button>
-        </div>
-      </label>
-      <label class="row" style="grid-template-columns:88px auto 1fr;">文字色 <input type="color" id="fill" value="#ffffff"><span></span></label>
-    </section>
 
-    <section class="panel">
-      <h2>角の結合</h2>
-      <div class="seg" id="join">
-        <button data-v="round" class="on">ラウンド</button><button data-v="miter">マイター</button><button data-v="bevel">ベベル</button>
-      </div>
-    </section>
+<section class="hero">
+  <img src="assets/icon.png" alt="Fuchidori app icon">
+  <h1>Fuchidori</h1>
+  <p>A Canva app that adds layered outlines with rounded corners to your text.</p>
+  <p lang="ja">文字に、角の丸い多重の縁取り（袋文字）を付けるCanvaアプリです。</p>
+</section>
 
-    <section class="panel">
-      <h2>アウトライン（上が内側）</h2>
-      <div id="layers"></div>
-      <button class="btn ghost" id="addLayer">＋ 外側に追加</button>
-      <div class="presets" style="margin-top:8px;">
-        <button class="btn ghost" data-preset="pop">ポップ</button>
-        <button class="btn ghost" data-preset="candy">キャンディ</button>
-        <button class="btn ghost" data-preset="mono">モノ</button>
-      </div>
-    </section>
+<div class="card">
+<h3>What you can do</h3>
+<ul>
+  <li>Stack as many outline layers as you like, each with its own color and width.</li>
+  <li>Choose round, miter or bevel corners for the outlines.</li>
+  <li>Use the built-in Japanese fonts, or upload your own font file.</li>
+  <li>Select the result in your design later to change the text, colors or outlines.</li>
+</ul>
+</div>
 
-    <section class="panel">
-      <h2>書き出し</h2>
-      <label class="row">倍率 <input type="range" id="scale" min="1" max="4" step="1" value="2"><span class="val" id="scaleV"></span></label>
-      <button class="btn" id="download">PNGをダウンロード</button>
-    </section>
-  </div>
+<div class="card" lang="ja">
+<h3>できること</h3>
+<ul>
+  <li>縁取りを何重にも重ね、層ごとに色と太さを変えられます。</li>
+  <li>縁取りの角を、ラウンド・マイター・ベベルから選べます。</li>
+  <li>日本語フォントを内蔵しています。手持ちのフォントファイルも使えます。</li>
+  <li>追加したあとでデザイン上で選び直すと、文字・色・縁取りを編集できます。</li>
+</ul>
+</div>
 
-  <div>
-    <div class="stage"><canvas id="cv"></canvas></div>
-    <div class="meta" id="meta"></div>
-  </div>
+<h2>How to start / 使い方</h2>
+<ol>
+  <li>Open a design in Canva and select <strong>Apps</strong> in the side panel.</li>
+  <li>Search for <strong>Fuchidori</strong> and open it.</li>
+  <li>Type your text, adjust the outlines, then select <strong>Add to design</strong>.</li>
+</ol>
+<ol lang="ja">
+  <li>Canvaでデザインを開き、左のメニューから「アプリ」を選びます。</li>
+  <li>「Fuchidori」を検索して開きます。</li>
+  <li>文字を入力して縁取りを調整し、「デザインに追加」を押します。</li>
+</ol>
+<p>Need help? See the <a href="support/">Support</a> page. / お困りのときは<a href="support/">サポート</a>をご覧ください。</p>
+<p class="meta">Fuchidori is made by FlashMelody K.Murakami. It is an independent app and is not made by Canva.<br>
+<span lang="ja">FuchidoriはFlashMelody K.Murakamiが開発した独立したアプリで、Canvaが提供するものではありません。</span></p>
+
 </main>
-
-<script>
-const $ = (id) => document.getElementById(id);
-
-const PRESETS = {
-  pop:   [{ w: 10, c: "#ff3d7f" }, { w: 8, c: "#ffffff" }, { w: 10, c: "#2b2b8f" }],
-  candy: [{ w: 8, c: "#ff8fb1" }, { w: 6, c: "#fff3a6" }, { w: 6, c: "#8fd6ff" }, { w: 8, c: "#5b3b8c" }],
-  mono:  [{ w: 12, c: "#111111" }, { w: 6, c: "#ffffff" }, { w: 4, c: "#111111" }],
-};
-
-const state = {
-  layers: PRESETS.pop.map((l) => ({ ...l })),
-  join: "round",
-  align: "center",
-};
-
-function renderLayerControls() {
-  const box = $("layers");
-  box.innerHTML = "";
-  state.layers.forEach((l, i) => {
-    const row = document.createElement("div");
-    row.className = "layer";
-    row.innerHTML = `
-      <span class="idx">${i + 1}</span>
-      <input type="color" value="${l.c}">
-      <input type="range" min="1" max="60" value="${l.w}">
-      <span class="w">${l.w}</span>
-      <button class="iconbtn" title="削除">×</button>`;
-    const [color, range] = row.querySelectorAll("input");
-    const wLabel = row.querySelector(".w");
-    color.addEventListener("input", () => { l.c = color.value; draw(); });
-    range.addEventListener("input", () => { l.w = +range.value; wLabel.textContent = l.w; draw(); });
-    row.querySelector("button").addEventListener("click", () => {
-      state.layers.splice(i, 1); renderLayerControls(); draw();
-    });
-    box.appendChild(row);
-  });
-}
-
-function fontSpec() {
-  const [family, weight = "400"] = $("font").value.split("|");
-  return { family, weight };
-}
-
-// テキストをキャンバスへ描画。scale は書き出し倍率。
-function render(canvas, scale) {
-  const ctx = canvas.getContext("2d");
-  const lines = $("text").value.split("\n");
-  const size = +$("size").value;
-  const tracking = +$("tracking").value / 100; // em
-  const leading = +$("leading").value / 100;
-  const { family, weight } = fontSpec();
-  const totalOutline = state.layers.reduce((s, l) => s + l.w, 0);
-  const pad = totalOutline + Math.ceil(size * 0.1);
-
-  const font = `${weight} ${size}px ${family}`;
-  ctx.font = font;
-  if ("letterSpacing" in ctx) ctx.letterSpacing = `${tracking * size}px`;
-
-  const metrics = lines.map((t) => ctx.measureText(t || " "));
-  const ascent = Math.max(...metrics.map((m) => m.actualBoundingBoxAscent || size * 0.88), size * 0.5);
-  const descent = Math.max(...metrics.map((m) => m.actualBoundingBoxDescent || size * 0.12), size * 0.1);
-  const lineH = size * leading;
-  const maxW = Math.max(...metrics.map((m) => m.width), 1);
-
-  const contentH = ascent + descent + lineH * (lines.length - 1);
-  const W = Math.ceil(maxW + pad * 2);
-  const H = Math.ceil(contentH + pad * 2);
-
-  canvas.width = W * scale;
-  canvas.height = H * scale;
-  ctx.setTransform(scale, 0, 0, scale, 0, 0);
-  ctx.clearRect(0, 0, W, H);
-  ctx.font = font;
-  if ("letterSpacing" in ctx) ctx.letterSpacing = `${tracking * size}px`;
-  ctx.textBaseline = "alphabetic";
-  ctx.lineJoin = state.join;
-  ctx.lineCap = state.join === "round" ? "round" : "butt";
-  ctx.miterLimit = 10;
-
-  const xFor = (w) =>
-    state.align === "left" ? pad : state.align === "right" ? W - pad - w : (W - w) / 2;
-
-  const eachLine = (fn) =>
-    lines.forEach((t, i) => fn(t, xFor(metrics[i].width), pad + ascent + lineH * i));
-
-  // 外側から内側へ。各レイヤーの線幅は「そのレイヤーまでの累計太さ×2」。
-  for (let i = state.layers.length - 1; i >= 0; i--) {
-    const cumulative = state.layers.slice(0, i + 1).reduce((s, l) => s + l.w, 0);
-    ctx.lineWidth = cumulative * 2;
-    ctx.strokeStyle = state.layers[i].c;
-    eachLine((t, x, y) => ctx.strokeText(t, x, y));
-  }
-  ctx.fillStyle = $("fill").value;
-  eachLine((t, x, y) => ctx.fillText(t, x, y));
-
-  return { W, H };
-}
-
-let pending = false;
-function draw() {
-  if (pending) return;
-  pending = true;
-  requestAnimationFrame(async () => {
-    pending = false;
-    const { family, weight } = fontSpec();
-    try { await document.fonts.load(`${weight} 40px ${family}`, $("text").value); } catch (e) {}
-    const cv = $("cv");
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const { W, H } = render(cv, dpr);
-    cv.style.width = W + "px";
-    $("meta").textContent = `${W} × ${H}px（等倍）・アウトライン ${state.layers.length} 層`;
-    ["size", "tracking", "leading", "scale"].forEach((k) => {
-      const v = $(k).value;
-      $(k + "V").textContent = k === "scale" ? `×${v}` : k === "size" ? v : (k === "leading" ? v + "%" : v);
-    });
-  });
-}
-
-// イベント
-["text", "font", "size", "tracking", "leading", "fill", "scale"].forEach((id) =>
-  $(id).addEventListener("input", draw)
-);
-function seg(id, key) {
-  $(id).addEventListener("click", (e) => {
-    const b = e.target.closest("button");
-    if (!b) return;
-    $(id).querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
-    state[key] = b.dataset.v;
-    draw();
-  });
-}
-seg("join", "join");
-seg("align", "align");
-
-$("addLayer").addEventListener("click", () => {
-  const last = state.layers[state.layers.length - 1];
-  state.layers.push({ w: last ? last.w : 8, c: "#000000" });
-  renderLayerControls(); draw();
-});
-document.querySelectorAll("[data-preset]").forEach((b) =>
-  b.addEventListener("click", () => {
-    state.layers = PRESETS[b.dataset.preset].map((l) => ({ ...l }));
-    renderLayerControls(); draw();
-  })
-);
-$("download").addEventListener("click", async () => {
-  const { family, weight } = fontSpec();
-  try { await document.fonts.load(`${weight} 40px ${family}`, $("text").value); } catch (e) {}
-  const off = document.createElement("canvas");
-  render(off, +$("scale").value);
-  off.toBlob((blob) => {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `outline-text-${Date.now()}.png`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  }, "image/png");
-});
-
-renderLayerControls();
-document.fonts.ready.then(draw);
-draw();
-</script>
+<footer class="site"><div class="inner">
+  <span>© 2026 FlashMelody K.Murakami</span>
+  <a href="support/">Support / サポート</a>
+  <a href="privacy/">Privacy Policy / プライバシーポリシー</a>
+  <a href="terms/">Terms of Use / 利用規約</a>
+</div></footer>
 </body>
 </html>
