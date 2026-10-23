@@ -34,3 +34,16 @@ Wrap your text in as many outline layers as you like and choose round, miter or 
 - プライバシーポリシーの URL
 - サポートの URL
 - 会社（または個人）の Web サイトの URL
+
+## 特集画像（2400×1800px・4:3）— 開発者ページに登録済み
+
+- `featured_1.png` … 実際のパネル（プレビューと「デザインに追加」）と、デザインに追加した縁取り文字の例
+- `featured_2.png` … 角の結合 3 種（Round / Miter / Bevel）の比較
+
+## リンク — 開発者ページに登録済み
+
+- 運営者名: FlashMelody K.Murakami
+- Web サイト: https://canva-outline-text.pages.dev/
+- 利用規約: https://canva-outline-text.pages.dev/terms/
+- プライバシーポリシー: https://canva-outline-text.pages.dev/privacy/
+- サポート: https://canva-outline-text.pages.dev/support/
