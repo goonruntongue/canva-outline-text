@@ -10,6 +10,22 @@ export type OutlineLayer = {
   color: string;
 };
 
+export type GradientStop = {
+  /** 位置（0〜100%） */
+  offset: number;
+  /** #rrggbb */
+  color: string;
+};
+
+export type FillGradient = {
+  type: "linear" | "radial";
+  /** 線形のときの向き（度）。0° は左→右、90° は上→下 */
+  angle: number;
+  stops: GradientStop[];
+};
+
+export type FillMode = "solid" | "gradient";
+
 export type OutlineSettings = {
   text: string;
   fontFamily: string;
@@ -20,7 +36,11 @@ export type OutlineSettings = {
   /** 行間（%） */
   leading: number;
   align: TextAlign;
+  /** 単色の塗り（#rrggbb） */
   fill: string;
+  /** 塗りの種類。古い保存データには無いので、無ければ単色として扱う */
+  fillMode?: FillMode;
+  fillGradient?: FillGradient;
   join: LineJoin;
   /** 内側→外側の順 */
   layers: OutlineLayer[];
@@ -103,11 +123,130 @@ export function renderOutlineText(
     eachLine((t, x, y) => ctx.strokeText(t, x, y));
   }
 
-  ctx.fillStyle = s.fill;
+  ctx.fillStyle =
+    s.fillMode === "gradient" && s.fillGradient
+      ? makeGradient(
+          ctx,
+          s.fillGradient,
+          textBounds(lines.length, metrics, xFor, pad, contentH),
+        )
+      : s.fill;
   eachLine((t, x, y) => ctx.fillText(t, x, y));
 
   return { width: W, height: H };
 }
+
+type Box = { x: number; y: number; w: number; h: number };
+
+/** 文字が占める範囲（グラデーションをこの範囲に合わせて掛ける） */
+function textBounds(
+  count: number,
+  metrics: TextMetrics[],
+  xFor: (w: number) => number,
+  pad: number,
+  contentH: number,
+): Box {
+  let left = Infinity;
+  let right = -Infinity;
+  for (let i = 0; i < count; i++) {
+    const w = metrics[i]?.width ?? 0;
+    const x = xFor(w);
+    left = Math.min(left, x);
+    right = Math.max(right, x + w);
+  }
+  if (!Number.isFinite(left) || right <= left) {
+    left = pad;
+    right = pad + 1;
+  }
+  return { x: left, y: pad, w: right - left, h: Math.max(contentH, 1) };
+}
+
+function makeGradient(
+  ctx: CanvasRenderingContext2D,
+  g: FillGradient,
+  b: Box,
+): CanvasGradient {
+  const cx = b.x + b.w / 2;
+  const cy = b.y + b.h / 2;
+  let grad: CanvasGradient;
+  if (g.type === "radial") {
+    // CSS の farthest-corner と同じく、中心から角までを半径にする
+    const r = Math.hypot(b.w / 2, b.h / 2);
+    grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+  } else {
+    // CSS の linear-gradient と同じく、角度に応じて範囲全体を覆う長さにする
+    const rad = (g.angle * Math.PI) / 180;
+    const dx = Math.cos(rad);
+    const dy = Math.sin(rad);
+    const half = (Math.abs(b.w * dx) + Math.abs(b.h * dy)) / 2;
+    grad = ctx.createLinearGradient(
+      cx - dx * half,
+      cy - dy * half,
+      cx + dx * half,
+      cy + dy * half,
+    );
+  }
+  for (const stop of sortStops(g.stops)) {
+    grad.addColorStop(Math.min(Math.max(stop.offset, 0), 100) / 100, stop.color);
+  }
+  return grad;
+}
+
+export const sortStops = (stops: GradientStop[]): GradientStop[] =>
+  [...stops].sort((a, b) => a.offset - b.offset);
+
+const hexToRgb = (hex: string): [number, number, number] => {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  const n = m?.[1] ? parseInt(m[1], 16) : 0;
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+
+const rgbToHex = (r: number, g: number, b: number) =>
+  "#" +
+  [r, g, b]
+    .map((v) => Math.round(v).toString(16).padStart(2, "0"))
+    .join("");
+
+/** グラデーションの、ある位置（0〜100）の色を求める（中間点の追加用） */
+export function colorAt(stops: GradientStop[], offset: number): string {
+  const sorted = sortStops(stops);
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
+  if (!first || !last) return "#000000";
+  if (offset <= first.offset) return first.color;
+  if (offset >= last.offset) return last.color;
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const a = sorted[i];
+    const b = sorted[i + 1];
+    if (!a || !b) continue;
+    if (offset >= a.offset && offset <= b.offset) {
+      const t = b.offset === a.offset ? 0 : (offset - a.offset) / (b.offset - a.offset);
+      const ca = hexToRgb(a.color);
+      const cb = hexToRgb(b.color);
+      return rgbToHex(
+        ca[0] + (cb[0] - ca[0]) * t,
+        ca[1] + (cb[1] - ca[1]) * t,
+        ca[2] + (cb[2] - ca[2]) * t,
+      );
+    }
+  }
+  return last.color;
+}
+
+/** プレビュー用の CSS（グラデーションバーに使う。常に左→右） */
+export const gradientCss = (stops: GradientStop[]) =>
+  `linear-gradient(90deg, ${sortStops(stops)
+    .map((st) => `${st.color} ${st.offset}%`)
+    .join(", ")})`;
+
+export const DEFAULT_GRADIENT: FillGradient = {
+  type: "linear",
+  angle: 90,
+  stops: [
+    { offset: 0, color: "#fff27a" },
+    { offset: 100, color: "#ff7ab6" },
+  ],
+};
 
 export const PRESETS: Record<"pop" | "candy" | "mono", { layers: OutlineLayer[] }> =
   {
