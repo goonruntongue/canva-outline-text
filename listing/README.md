@@ -13,21 +13,20 @@ Canva Developer Portal の「アプリのリスト詳細」に入力する内容
 
 ## 短い説明（50文字以内・一文なら末尾の句読点なし）
 
-Add layered outlines with rounded corners to text
+Add layered outlines and gradient fills to text
 
-（49文字）
+（47文字）
 
 ## 説明（200文字以内・各文を句読点で終える・宣伝文句なし）
-
-Wrap your text in as many outline layers as you like and choose round, miter or bevel corners. Japanese fonts are included, and you can select the result in your design later to edit it.
-
-（186文字）
-
-塗り（単色／グラデーション）を入れる場合の案：
 
 Wrap text in any number of outline layers, choose round, miter or bevel corners, and fill letters with a color or gradient. Japanese fonts are included, and you can edit the result later.
 
 （187文字）
+
+塗りを入れる前の文（参考）：
+
+- 短い説明: Add layered outlines with rounded corners to text（49文字）
+- 説明: Wrap your text in as many outline layers as you like and choose round, miter or bevel corners. Japanese fonts are included, and you can select the result in your design later to edit it.（186文字）
 
 ## アプリアイコン（512×512px・透明背景なし・角丸なし・文字なし）
 
