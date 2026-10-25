@@ -23,6 +23,12 @@ Wrap your text in as many outline layers as you like and choose round, miter or 
 
 （186文字）
 
+塗り（単色／グラデーション）を入れる場合の案：
+
+Wrap text in any number of outline layers, choose round, miter or bevel corners, and fill letters with a color or gradient. Japanese fonts are included, and you can edit the result later.
+
+（187文字）
+
 ## アプリアイコン（512×512px・透明背景なし・角丸なし・文字なし）
 
 - `icon_pink.png` … 淡いピンク背景 **← 採用（開発者ページに登録済み）**
