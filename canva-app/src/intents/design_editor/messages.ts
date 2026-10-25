@@ -104,6 +104,11 @@ export const messages = defineMessages({
     defaultMessage: "Angle",
     description: "Label of the slider for the direction of a linear gradient, in degrees",
   },
+  gradientAngleValue: {
+    defaultMessage: "{angle}°",
+    description:
+      "Current angle of a linear gradient shown next to the Angle label. {angle} is a number from 0 to 359",
+  },
   gradientHint: {
     defaultMessage:
       "Click the bar to add a color stop. Drag stops to move them.",

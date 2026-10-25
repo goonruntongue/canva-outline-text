@@ -87,7 +87,7 @@ export const GradientEditor = (props: {
   };
 
   const onHandlePointerDown = (
-    e: PointerEvent<HTMLButtonElement>,
+    e: PointerEvent<HTMLDivElement>,
     index: number,
   ) => {
     e.preventDefault();
@@ -110,7 +110,7 @@ export const GradientEditor = (props: {
     setDragging(undefined);
   };
 
-  const onHandleKeyDown = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
+  const onHandleKeyDown = (e: KeyboardEvent<HTMLDivElement>, index: number) => {
     const stop = g.stops[index];
     if (!stop) return;
     const step = e.shiftKey ? 10 : 1;
@@ -170,14 +170,18 @@ export const GradientEditor = (props: {
           {g.stops.map((stop, i) => {
             const isSel = i === sel;
             return (
-              <button
+              // ドラッグ用のつまみ。UI Kit に該当部品がないため、キーボード操作できる slider として作る
+              <div
                 key={i}
-                type="button"
+                role="slider"
+                tabIndex={0}
                 aria-label={t(messages.gradientStopAria, {
                   index: i + 1,
                   offset: stop.offset,
                 })}
-                aria-pressed={isSel}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={stop.offset}
                 onPointerDown={(e) => onHandlePointerDown(e, i)}
                 onKeyDown={(e) => onHandleKeyDown(e, i)}
                 onFocus={() => setSelected(i)}
@@ -187,9 +191,9 @@ export const GradientEditor = (props: {
                   top: "calc(100% + 4px)",
                   left: `${stop.offset}%`,
                   transform: "translateX(-50%)",
+                  boxSizing: "border-box",
                   width: HANDLE,
                   height: HANDLE,
-                  padding: 0,
                   borderRadius: 4,
                   background: stop.color,
                   // 選択中は文字色（テーマに追従）の太枠、それ以外は細枠
@@ -282,7 +286,7 @@ export const GradientEditor = (props: {
             </Column>
             <Column width="containedContent">
               <Text size="small" tone="tertiary">
-                {g.angle}°
+                {t(messages.gradientAngleValue, { angle: g.angle })}
               </Text>
             </Column>
           </Columns>

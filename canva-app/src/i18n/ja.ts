@@ -32,6 +32,7 @@ export const JA: Record<string, string> = {
   "Color stop {index} · {offset}%": "カラーストップ {index} · {offset}%",
   "+ Add color stop": "＋ カラーストップを追加",
   Reverse: "反転",
+  "{angle}°": "{angle}°",
   "Corner style": "角の結合",
   Round: "ラウンド",
   Miter: "マイター",
