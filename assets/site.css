@@ -34,3 +34,4 @@ footer.site { border-top: 1px solid var(--line); color: var(--muted); font-size:
 footer.site .inner { display: flex; flex-wrap: wrap; gap: 8px 16px; }
 footer.site a { color: var(--muted); }
 .card h3:first-child { margin-top: 0; }
+video.demo { display: block; width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); margin: 16px 0; }

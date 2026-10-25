@@ -44,6 +44,14 @@ Wrap text in any number of outline layers, choose round, miter or bevel corners,
 
 - `featured_1.png` … 実際のパネル（プレビューと「デザインに追加」）と、デザインに追加した縁取り文字の例
 - `featured_2.png` … 角の結合 3 種（Round / Miter / Bevel）の比較
+- `featured_3.png` … 塗りの比較（Solid / Gradient）。Noto Sans JP・角度135°・黄→紫→ピンク。アプリと同じ描画処理で作成
+
+## 動画（公式サイトに掲載）
+
+- 操作動画（審査の「App walkthrough video link」用）: https://canva-outline-text.pages.dev/video/
+  - ファイル: `assets/video/fuchidori-walkthrough.mp4`（約80秒・音声なし・英日字幕）
+  - 流れ: 文字入力 → Dela Gothic One から Noto Sans JP へ → グラデーション → ストップ追加・色・角度 → 角の結合・太さ → デザインに追加 → 選び直して更新
+- 特集動画（トップページに掲載）: `assets/video/fuchidori-gradient.mp4`（14秒・ループ）
 
 ## リンク — 開発者ページに登録済み
 
