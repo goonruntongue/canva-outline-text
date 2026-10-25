@@ -149,6 +149,8 @@ export const GradientEditor = (props: {
           paddingRight: HANDLE / 2,
           touchAction: "none",
           userSelect: "none",
+          // つまみの zIndex をこの中だけで効かせ、固定表示のプレビューより手前に出ないようにする
+          isolation: "isolate",
         }}
       >
         <div
