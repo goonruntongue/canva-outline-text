@@ -78,6 +78,24 @@
   .meta { color: var(--muted); font-size: 12px; margin-top: 8px; text-align: right; }
   .presets { display: flex; gap: 6px; flex-wrap: wrap; }
   .presets button { flex: 1 1 auto; }
+  /* グラデーションバーと、その下のカラーストップのつまみ */
+  .gbar-wrap { position: relative; padding: 0 9px 24px; margin-top: 10px; touch-action: none; user-select: none; isolation: isolate; }
+  .gbar { position: relative; height: 28px; border-radius: 8px; border: 1px solid var(--line); cursor: copy; }
+  .gbar.full { cursor: default; }
+  .stop {
+    position: absolute; top: calc(100% + 4px); width: 18px; height: 18px; transform: translateX(-50%);
+    border-radius: 4px; border: 1px solid var(--line); box-shadow: inset 0 0 0 2px var(--panel);
+    cursor: grab; z-index: 1; color: var(--text);
+  }
+  .stop.sel { border: 2px solid currentColor; z-index: 2; }
+  .stop:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .hint { color: var(--muted); font-size: 12px; margin: 4px 0 0; }
+  .stoprow { display: grid; grid-template-columns: 36px 1fr auto; gap: 8px; align-items: center; margin-top: 10px; }
+  .btnrow { display: flex; gap: 6px; }
+  .btnrow .btn { margin-top: 8px; }
+  .btnrow .btn:last-child { flex: 0 0 auto; width: auto; padding: 10px 14px; }
+  .btn:disabled, .iconbtn:disabled { opacity: .45; cursor: default; }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
@@ -108,7 +126,36 @@
           <button data-v="left">左</button><button data-v="center" class="on">中央</button><button data-v="right">右</button>
         </div>
       </label>
-      <label class="row" style="grid-template-columns:88px auto 1fr;">文字色 <input type="color" id="fill" value="#ffffff"><span></span></label>
+    </section>
+
+    <section class="panel">
+      <h2>塗り</h2>
+      <div class="seg" id="fillMode">
+        <button data-v="solid" class="on">単色</button><button data-v="gradient">グラデーション</button>
+      </div>
+      <div id="solidBox">
+        <label class="row" style="grid-template-columns:88px auto 1fr;">塗りの色 <input type="color" id="fill" value="#ffffff"><span></span></label>
+      </div>
+      <div id="gradBox" hidden>
+        <div class="seg" id="gradType" style="margin-top:10px;">
+          <button data-v="linear" class="on">線形</button><button data-v="radial">円形</button>
+        </div>
+        <div class="gbar-wrap">
+          <div class="gbar" id="gbar" role="presentation"></div>
+        </div>
+        <p class="hint">バーをクリックするとカラーストップを追加できます。ストップはドラッグで動かせます。</p>
+        <div class="stoprow">
+          <input type="color" id="stopColor" aria-label="選択中のストップの色">
+          <span id="stopLabel"></span>
+          <button class="iconbtn" id="stopRemove" style="padding:0 10px;">削除</button>
+        </div>
+        <label class="row" style="grid-template-columns:88px 1fr 44px;">位置 <input type="range" id="stopOffset" min="0" max="100" step="1"><span class="val" id="stopOffsetV"></span></label>
+        <div class="btnrow">
+          <button class="btn ghost" id="stopAdd">＋ カラーストップを追加</button>
+          <button class="btn ghost" id="gradReverse">反転</button>
+        </div>
+        <label class="row" id="angleRow">角度 <input type="range" id="angle" min="0" max="359" step="1" value="90"><span class="val" id="angleV"></span></label>
+      </div>
     </section>
 
     <section class="panel">
@@ -151,11 +198,65 @@ const PRESETS = {
   mono:  [{ w: 12, c: "#111111" }, { w: 6, c: "#ffffff" }, { w: 4, c: "#111111" }],
 };
 
+const MAX_STOPS = 8;
+const MIN_STOPS = 2;
+
 const state = {
   layers: PRESETS.pop.map((l) => ({ ...l })),
   join: "round",
   align: "center",
+  fillMode: "solid",
+  // 0° は左→右、90° は上→下（CSS の linear-gradient と同じ向き）
+  grad: {
+    type: "linear",
+    angle: 90,
+    stops: [{ offset: 0, color: "#fff27a" }, { offset: 100, color: "#ff7ab6" }],
+  },
+  sel: 0,
 };
+
+const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
+const sortStops = (stops) => [...stops].sort((a, b) => a.offset - b.offset);
+const hexToRgb = (hex) => {
+  const n = parseInt(hex.slice(1), 16) || 0;
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+const rgbToHex = (r, g, b) =>
+  "#" + [r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+
+// グラデーションの、ある位置（0〜100）の色を求める（ストップの追加用）
+function colorAt(stops, offset) {
+  const s = sortStops(stops);
+  if (offset <= s[0].offset) return s[0].color;
+  if (offset >= s[s.length - 1].offset) return s[s.length - 1].color;
+  for (let i = 0; i < s.length - 1; i++) {
+    const a = s[i], b = s[i + 1];
+    if (offset >= a.offset && offset <= b.offset) {
+      const t = b.offset === a.offset ? 0 : (offset - a.offset) / (b.offset - a.offset);
+      const ca = hexToRgb(a.color), cb = hexToRgb(b.color);
+      return rgbToHex(...ca.map((v, k) => v + (cb[k] - v) * t));
+    }
+  }
+  return s[s.length - 1].color;
+}
+
+// 文字が占める範囲に合わせてグラデーションを作る
+function makeGradient(ctx, g, b) {
+  const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+  let grad;
+  if (g.type === "radial") {
+    // CSS の farthest-corner と同じく、中心から角までを半径にする
+    grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.hypot(b.w / 2, b.h / 2));
+  } else {
+    // CSS の linear-gradient と同じく、角度に応じて範囲全体を覆う長さにする
+    const rad = (g.angle * Math.PI) / 180;
+    const dx = Math.cos(rad), dy = Math.sin(rad);
+    const half = (Math.abs(b.w * dx) + Math.abs(b.h * dy)) / 2;
+    grad = ctx.createLinearGradient(cx - dx * half, cy - dy * half, cx + dx * half, cy + dy * half);
+  }
+  for (const st of sortStops(g.stops)) grad.addColorStop(clamp(st.offset, 0, 100) / 100, st.color);
+  return grad;
+}
 
 function renderLayerControls() {
   const box = $("layers");
@@ -234,7 +335,14 @@ function render(canvas, scale) {
     ctx.strokeStyle = state.layers[i].c;
     eachLine((t, x, y) => ctx.strokeText(t, x, y));
   }
-  ctx.fillStyle = $("fill").value;
+  if (state.fillMode === "gradient") {
+    let left = Infinity, right = -Infinity;
+    metrics.forEach((m) => { const x = xFor(m.width); left = Math.min(left, x); right = Math.max(right, x + m.width); });
+    if (!(right > left)) { left = pad; right = pad + 1; }
+    ctx.fillStyle = makeGradient(ctx, state.grad, { x: left, y: pad, w: right - left, h: Math.max(contentH, 1) });
+  } else {
+    ctx.fillStyle = $("fill").value;
+  }
   eachLine((t, x, y) => ctx.fillText(t, x, y));
 
   return { W, H };
@@ -260,6 +368,142 @@ function draw() {
   });
 }
 
+// ---- グラデーションの編集 ----
+let dragging = null;
+
+function gradientCss(stops) {
+  return `linear-gradient(90deg, ${sortStops(stops).map((s) => `${s.color} ${s.offset}%`).join(", ")})`;
+}
+
+function renderGradEditor() {
+  const g = state.grad;
+  state.sel = clamp(state.sel, 0, g.stops.length - 1);
+  const bar = $("gbar");
+  bar.style.background = gradientCss(g.stops);
+  bar.classList.toggle("full", g.stops.length >= MAX_STOPS);
+  // つまみは作り直さず、数の差だけ足し引きする（ドラッグ中にフォーカスが外れないように）
+  while (bar.children.length < g.stops.length) {
+    const h = document.createElement("div");
+    h.className = "stop";
+    h.tabIndex = 0;
+    h.setAttribute("role", "slider");
+    h.setAttribute("aria-valuemin", "0");
+    h.setAttribute("aria-valuemax", "100");
+    bar.appendChild(h);
+  }
+  while (bar.children.length > g.stops.length) bar.lastChild.remove();
+  g.stops.forEach((s, i) => {
+    const h = bar.children[i];
+    h.dataset.i = i;
+    h.style.left = `${s.offset}%`;
+    h.style.background = s.color;
+    h.classList.toggle("sel", i === state.sel);
+    h.setAttribute("aria-valuenow", s.offset);
+    h.setAttribute("aria-label", `カラーストップ ${i + 1}、${s.offset}%`);
+  });
+  const st = g.stops[state.sel];
+  $("stopColor").value = st.color;
+  $("stopLabel").textContent = `カラーストップ ${state.sel + 1} · ${st.offset}%`;
+  $("stopOffset").value = st.offset;
+  $("stopOffsetV").textContent = `${st.offset}%`;
+  $("stopRemove").disabled = g.stops.length <= MIN_STOPS;
+  $("stopAdd").disabled = g.stops.length >= MAX_STOPS;
+  $("angle").value = g.angle;
+  $("angleV").textContent = `${g.angle}°`;
+  $("angleRow").hidden = g.type !== "linear";
+}
+
+function changed() { renderGradEditor(); draw(); }
+
+function offsetFromPointer(clientX) {
+  const r = $("gbar").getBoundingClientRect();
+  return r.width ? Math.round(clamp(((clientX - r.left) / r.width) * 100, 0, 100)) : 0;
+}
+
+function addStopAt(offset) {
+  const g = state.grad;
+  if (g.stops.length >= MAX_STOPS) return -1;
+  g.stops.push({ offset, color: colorAt(g.stops, offset) });
+  state.sel = g.stops.length - 1;
+  return state.sel;
+}
+
+function removeStop(i) {
+  const g = state.grad;
+  if (g.stops.length <= MIN_STOPS) return;
+  g.stops.splice(i, 1);
+  state.sel = clamp(i - 1, 0, g.stops.length - 1);
+  changed();
+}
+
+$("gbar").addEventListener("pointerdown", (e) => {
+  const handle = e.target.closest(".stop");
+  let i;
+  if (handle) {
+    e.preventDefault();
+    handle.focus();
+    i = +handle.dataset.i;
+    state.sel = i;
+  } else {
+    // バーの何もない所を押したら、その位置にストップを追加してそのままドラッグできるようにする
+    i = addStopAt(offsetFromPointer(e.clientX));
+    if (i < 0) return;
+  }
+  dragging = i;
+  $("gbar").setPointerCapture(e.pointerId);
+  changed();
+});
+$("gbar").addEventListener("pointermove", (e) => {
+  if (dragging === null) return;
+  state.grad.stops[dragging].offset = offsetFromPointer(e.clientX);
+  changed();
+});
+const endDrag = (e) => {
+  if (dragging === null) return;
+  dragging = null;
+  if ($("gbar").hasPointerCapture(e.pointerId)) $("gbar").releasePointerCapture(e.pointerId);
+};
+$("gbar").addEventListener("pointerup", endDrag);
+$("gbar").addEventListener("pointercancel", endDrag);
+$("gbar").addEventListener("focusin", (e) => {
+  const h = e.target.closest(".stop");
+  if (h && +h.dataset.i !== state.sel) { state.sel = +h.dataset.i; renderGradEditor(); }
+});
+// 矢印キーで ±1、Shift で ±10、Delete で削除
+$("gbar").addEventListener("keydown", (e) => {
+  const h = e.target.closest(".stop");
+  if (!h) return;
+  const i = +h.dataset.i;
+  const st = state.grad.stops[i];
+  const step = e.shiftKey ? 10 : 1;
+  if (e.key === "ArrowLeft" || e.key === "ArrowDown") st.offset = clamp(st.offset - step, 0, 100);
+  else if (e.key === "ArrowRight" || e.key === "ArrowUp") st.offset = clamp(st.offset + step, 0, 100);
+  else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); removeStop(i); return; }
+  else return;
+  e.preventDefault();
+  changed();
+});
+
+$("stopColor").addEventListener("input", () => { state.grad.stops[state.sel].color = $("stopColor").value; changed(); });
+$("stopOffset").addEventListener("input", () => { state.grad.stops[state.sel].offset = +$("stopOffset").value; changed(); });
+$("stopRemove").addEventListener("click", () => removeStop(state.sel));
+// いちばん広いすき間の真ん中に追加する
+$("stopAdd").addEventListener("click", () => {
+  const s = sortStops(state.grad.stops);
+  let best = { at: 50, gap: -1 };
+  for (let i = 0; i < s.length - 1; i++) {
+    const gap = s[i + 1].offset - s[i].offset;
+    if (gap > best.gap) best = { at: Math.round((s[i].offset + s[i + 1].offset) / 2), gap };
+  }
+  addStopAt(best.at);
+  changed();
+});
+$("gradReverse").addEventListener("click", () => {
+  state.grad.stops.forEach((s) => { s.offset = 100 - s.offset; });
+  changed();
+});
+$("angle").addEventListener("input", () => { state.grad.angle = +$("angle").value; changed(); });
+
 // イベント
 ["text", "font", "size", "tracking", "leading", "fill", "scale"].forEach((id) =>
   $(id).addEventListener("input", draw)
@@ -275,6 +519,18 @@ function seg(id, key) {
 }
 seg("join", "join");
 seg("align", "align");
+seg("fillMode", "fillMode");
+$("fillMode").addEventListener("click", () => {
+  $("solidBox").hidden = state.fillMode !== "solid";
+  $("gradBox").hidden = state.fillMode !== "gradient";
+});
+$("gradType").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  $("gradType").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+  state.grad.type = b.dataset.v;
+  changed();
+});
 
 $("addLayer").addEventListener("click", () => {
   const last = state.layers[state.layers.length - 1];
@@ -302,6 +558,7 @@ $("download").addEventListener("click", async () => {
 });
 
 renderLayerControls();
+renderGradEditor();
 document.fonts.ready.then(draw);
 draw();
 </script>
