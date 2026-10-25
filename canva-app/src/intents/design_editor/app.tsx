@@ -37,14 +37,26 @@ import {
   MissingCustomFontError,
   registerCustomFont,
 } from "./fonts";
+import { GradientEditor } from "./gradient_editor";
 import type {
+  FillGradient,
+  FillMode,
   LineJoin,
   OutlineLayer,
   OutlineSettings,
   TextAlign,
 } from "./outline_render";
-import { PRESETS, renderOutlineText } from "./outline_render";
+import {
+  DEFAULT_GRADIENT,
+  PRESETS,
+  renderOutlineText,
+} from "./outline_render";
 import { messages } from "./messages";
+
+const cloneGradient = (g: FillGradient): FillGradient => ({
+  ...g,
+  stops: g.stops.map((st) => ({ ...st })),
+});
 
 const PRESET_LABELS = {
   pop: messages.presetPop,
@@ -474,21 +486,45 @@ export const App = () => {
             { value: "right", label: t(messages.alignRight) },
           ]}
         />
-        <Columns spacing="1u" alignY="center">
-          <Column>
-            <Text size="small">{t(messages.textColorLabel)}</Text>
-          </Column>
-          <Column width="containedContent">
-            <Swatch
-              fill={[s.fill]}
-              onClick={(e) =>
-                pickColor(e.currentTarget.getBoundingClientRect(), (hex) =>
-                  update({ fill: hex }),
-                )
-              }
-            />
-          </Column>
-        </Columns>
+
+        <Title size="small">{t(messages.fillHeading)}</Title>
+        <SegmentedControl
+          value={s.fillMode ?? "solid"}
+          onChange={(v: FillMode) =>
+            setS((prev) => ({
+              ...prev,
+              fillMode: v,
+              fillGradient: prev.fillGradient ?? cloneGradient(DEFAULT_GRADIENT),
+            }))
+          }
+          options={[
+            { value: "solid", label: t(messages.fillSolid) },
+            { value: "gradient", label: t(messages.fillGradient) },
+          ]}
+        />
+        {(s.fillMode ?? "solid") === "solid" ? (
+          <Columns spacing="1u" alignY="center">
+            <Column>
+              <Text size="small">{t(messages.fillColorLabel)}</Text>
+            </Column>
+            <Column width="containedContent">
+              <Swatch
+                fill={[s.fill]}
+                onClick={(e) =>
+                  pickColor(e.currentTarget.getBoundingClientRect(), (hex) =>
+                    update({ fill: hex }),
+                  )
+                }
+              />
+            </Column>
+          </Columns>
+        ) : (
+          <GradientEditor
+            value={s.fillGradient ?? DEFAULT_GRADIENT}
+            onChange={(g) => update({ fillGradient: g })}
+            pickColor={pickColor}
+          />
+        )}
 
         <Title size="small">{t(messages.joinHeading)}</Title>
         <SegmentedControl

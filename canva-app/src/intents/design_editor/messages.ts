@@ -75,9 +75,62 @@ export const messages = defineMessages({
     defaultMessage: "Right",
     description: "Text alignment option: align text to the right",
   },
-  textColorLabel: {
-    defaultMessage: "Text color",
-    description: "Label next to the color swatch for the fill color of the letters",
+  fillHeading: {
+    defaultMessage: "Fill",
+    description:
+      "Section heading for how the letters themselves are filled (a single color or a gradient)",
+  },
+  fillSolid: {
+    defaultMessage: "Solid",
+    description: "Fill type option: fill the letters with a single color",
+  },
+  fillGradient: {
+    defaultMessage: "Gradient",
+    description: "Fill type option: fill the letters with a color gradient",
+  },
+  fillColorLabel: {
+    defaultMessage: "Fill color",
+    description: "Label next to the color swatch for the single fill color of the letters",
+  },
+  gradientLinear: {
+    defaultMessage: "Linear",
+    description: "Gradient type option: colors change along a straight line",
+  },
+  gradientRadial: {
+    defaultMessage: "Radial",
+    description: "Gradient type option: colors spread out in a circle from the center",
+  },
+  gradientAngle: {
+    defaultMessage: "Angle",
+    description: "Label of the slider for the direction of a linear gradient, in degrees",
+  },
+  gradientHint: {
+    defaultMessage:
+      "Click the bar to add a color stop. Drag stops to move them.",
+    description:
+      "Helper text under the gradient bar explaining how to add and move color stops",
+  },
+  gradientStopAria: {
+    defaultMessage: "Color stop {index}, {offset}%",
+    description:
+      "Accessible name of a draggable color stop handle on the gradient bar. {index} is the stop number starting at 1, {offset} is its position from 0 to 100",
+  },
+  gradientStopLabel: {
+    defaultMessage: "Color stop {index} · {offset}%",
+    description:
+      "Label for the currently selected color stop. {index} is the stop number starting at 1, {offset} is its position from 0 to 100",
+  },
+  gradientRemoveStop: {
+    defaultMessage: "Remove",
+    description: "Button that removes the selected color stop from the gradient",
+  },
+  gradientAddStop: {
+    defaultMessage: "+ Add color stop",
+    description: "Button that adds a new color stop to the gradient",
+  },
+  gradientReverse: {
+    defaultMessage: "Reverse",
+    description: "Button that flips the order of the gradient colors",
   },
   joinHeading: {
     defaultMessage: "Corner style",
